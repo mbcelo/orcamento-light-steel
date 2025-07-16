@@ -1,3 +1,4 @@
+from proposta_visual import gerar_html_proposta, exportar_proposta_html
 import streamlit as st
 from PIL import Image
 import pandas as pd
