@@ -1,120 +1,96 @@
 import streamlit as st
 from gerador_pdf_simples import gerar_pdf
-import streamlit_authenticator as stauth
-import yaml
-from yaml.loader import SafeLoader
 
-with open('config_login.yaml') as file:
-    config = yaml.load(file, Loader=SafeLoader)
+def executar_app():
+    st.set_page_config(page_title="🧾 Gerador de Proposta PDF", layout="centered")
+    st.title("🧾 Gerador de Proposta PDF - Steel Facility")
 
-authenticator = stauth.Authenticate(
-    config['credentials'],
-    config['cookie']['name'],
-    config['cookie']['key'],
-    config['cookie']['expiry_days'],
-    config['preauthorized']
-)
+    st.markdown("Preencha os dados abaixo para gerar sua proposta com visual profissional:")
 
-name, authentication_status, username = authenticator.login("Login", "main")
+    cliente = st.text_input("Nome do cliente")
+    area = st.number_input("Área da obra (m²)", min_value=0.0, step=1.0)
+    dias = st.number_input("Prazo de execução (dias)", min_value=1)
+    funcionarios = st.number_input("Quantidade de funcionários", min_value=1)
 
-if authentication_status:
-    st.success(f"Bem-vindo, {name} 👋")
-    # 🎯 Aqui roda seu app normalmente
-    # por exemplo: gerar PDF etc.
-elif authentication_status is False:
-    st.error("Usuário ou senha incorretos")
-elif authentication_status is None:
-    st.warning("Por favor, insira suas credenciais")
+    st.markdown("### 💰 Custos estimados")
+    total_mao_obra = st.number_input("Mão de obra (R$)", min_value=0.0, step=100.0)
+    total_alimentacao = st.number_input("Alimentação (R$)", min_value=0.0, step=50.0)
+    total_hospedagem = st.number_input("Hospedagem (R$)", min_value=0.0, step=50.0)
+    total_deslocamento = st.number_input("Deslocamento (R$)", min_value=0.0, step=50.0)
+    total_viagens = st.number_input("Viagens (R$)", min_value=0.0, step=50.0)
+    total_ferramentas = st.number_input("Ferramentas (R$)", min_value=0.0, step=50.0)
 
-st.set_page_config(page_title="🧾 Gerador de Proposta PDF", layout="centered")
-st.title("🧾 Gerador de Proposta PDF - Steel Facility")
+    lucro_perc = st.slider("Margem de lucro (%)", min_value=0, max_value=100, value=20) / 100.0
 
-st.markdown("Preencha os dados abaixo para gerar sua proposta com visual profissional:")
+    if st.button("📤 Gerar PDF da proposta"):
+        subtotal = (
+            total_mao_obra +
+            total_alimentacao +
+            total_hospedagem +
+            total_deslocamento +
+            total_viagens +
+            total_ferramentas
+        )
+        lucro = subtotal * lucro_perc
+        valor_final = subtotal + lucro
 
-cliente = st.text_input("Nome do cliente")
-area = st.number_input("Área da obra (m²)", min_value=0.0, step=1.0)
-dias = st.number_input("Prazo de execução (dias)", min_value=1)
-funcionarios = st.number_input("Quantidade de funcionários", min_value=1)
+        html = f"""
+        <html>
+        <head>
+        <style>
+            body {{
+                font-family: 'Segoe UI', sans-serif;
+                padding: 40px;
+                color: #333;
+                background-color: #f7f9fa;
+            }}
+            h1, h2 {{
+                color: #2c5e4e;
+            }}
+            .pagina {{
+                page-break-after: always;
+            }}
+            .assinatura {{
+                margin-top: 50px;
+                text-align: right;
+                font-style: italic;
+            }}
+        </style>
+        </head>
+        <body>
 
-st.markdown("### 💰 Custos estimados")
-total_mao_obra = st.number_input("Mão de obra (R$)", min_value=0.0, step=100.0)
-total_alimentacao = st.number_input("Alimentação (R$)", min_value=0.0, step=50.0)
-total_hospedagem = st.number_input("Hospedagem (R$)", min_value=0.0, step=50.0)
-total_deslocamento = st.number_input("Deslocamento (R$)", min_value=0.0, step=50.0)
-total_viagens = st.number_input("Viagens (R$)", min_value=0.0, step=50.0)
-total_ferramentas = st.number_input("Ferramentas (R$)", min_value=0.0, step=50.0)
+        <div class="pagina">
+            <h1>Steel Facility</h1>
+            <h2>Informações da Obra</h2>
+            <p><strong>Cliente:</strong> {cliente}</p>
+            <p><strong>Área:</strong> {area:.0f} m²</p>
+            <p><strong>Prazo:</strong> {dias} dias</p>
+            <p><strong>Equipe:</strong> {funcionarios + 1} profissionais</p>
 
-lucro_perc = st.slider("Margem de lucro (%)", min_value=0, max_value=100, value=20) / 100.0
+            <h2>Condições</h2>
+            <p>Pagamento a combinar.<br>Início conforme disponibilidade do cliente.</p>
+        </div>
 
-if st.button("📤 Gerar PDF da proposta"):
-    subtotal = (
-        total_mao_obra +
-        total_alimentacao +
-        total_hospedagem +
-        total_deslocamento +
-        total_viagens +
-        total_ferramentas
-    )
-    lucro = subtotal * lucro_perc
-    valor_final = subtotal + lucro
+        <div class="pagina">
+            <h2>Proposta Financeira</h2>
+            <ul>
+                <li>Mão de obra: R${total_mao_obra:,.2f}</li>
+                <li>Alimentação: R${total_alimentacao:,.2f}</li>
+                <li>Hospedagem: R${total_hospedagem:,.2f}</li>
+                <li>Deslocamento + Viagens: R${total_deslocamento + total_viagens:,.2f}</li>
+                <li>Ferramentas: R${total_ferramentas:,.2f}</li>
+                <li>Subtotal: R${subtotal:,.2f}</li>
+                <li>Lucro ({lucro_perc * 100:.0f}%): R${lucro:,.2f}</li>
+                <li><strong>Valor final: R${valor_final:,.2f}</strong></li>
+            </ul>
+            <div class="assinatura">___________________________<br>Assinatura responsável</div>
+        </div>
 
-    html = f"""
-    <html>
-    <head>
-    <style>
-        body {{
-            font-family: 'Segoe UI', sans-serif;
-            padding: 40px;
-            color: #333;
-            background-color: #f7f9fa;
-        }}
-        h1, h2 {{
-            color: #2c5e4e;
-        }}
-        .pagina {{
-            page-break-after: always;
-        }}
-        .assinatura {{
-            margin-top: 50px;
-            text-align: right;
-            font-style: italic;
-        }}
-    </style>
-    </head>
-    <body>
+        </body>
+        </html>
+        """
 
-    <div class="pagina">
-        <h1>Steel Facility</h1>
-        <h2>Informações da Obra</h2>
-        <p><strong>Cliente:</strong> {cliente}</p>
-        <p><strong>Área:</strong> {area:.0f} m²</p>
-        <p><strong>Prazo:</strong> {dias} dias</p>
-        <p><strong>Equipe:</strong> {funcionarios + 1} profissionais</p>
+        pdf_gerado = gerar_pdf(cliente, html)
 
-        <h2>Condições</h2>
-        <p>Pagamento a combinar.<br>Início conforme disponibilidade do cliente.</p>
-    </div>
-
-    <div class="pagina">
-        <h2>Proposta Financeira</h2>
-        <ul>
-            <li>Mão de obra: R${total_mao_obra:,.2f}</li>
-            <li>Alimentação: R${total_alimentacao:,.2f}</li>
-            <li>Hospedagem: R${total_hospedagem:,.2f}</li>
-            <li>Deslocamento + Viagens: R${total_deslocamento + total_viagens:,.2f}</li>
-            <li>Ferramentas: R${total_ferramentas:,.2f}</li>
-            <li>Subtotal: R${subtotal:,.2f}</li>
-            <li>Lucro ({lucro_perc * 100:.0f}%): R${lucro:,.2f}</li>
-            <li><strong>Valor final: R${valor_final:,.2f}</strong></li>
-        </ul>
-        <div class="assinatura">___________________________<br>Assinatura responsável</div>
-    </div>
-
-    </body>
-    </html>
-    """
-
-    pdf_gerado = gerar_pdf(cliente, html)
-
-    with open(pdf_gerado, "rb") as f:
-        st.download_button("📥 Baixar PDF da proposta", f, file_name=pdf_gerado)
+        with open(pdf_gerado, "rb") as f:
+            st.download_button("📥 Baixar PDF da proposta", f, file_name=pdf_gerado)
