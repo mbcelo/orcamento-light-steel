@@ -5,6 +5,7 @@ import hashlib
 import os
 import datetime
 import base64
+from admin import painel_administrador
 
 # 🎨 Aparência geral
 st.set_page_config(page_title="Orçamento Light Steel Frame", layout="wide")
@@ -18,7 +19,7 @@ def carregar_usuarios():
     if os.path.exists("usuarios.csv"):
         return pd.read_csv("usuarios.csv")
     else:
-        return pd.DataFrame(columns=["usuario", "senha_hash"])
+        return pd.DataFrame(columns=["usuario", "senha_hash", "tipo"])
 
 def autenticar(usuario, senha, df):
     senha_hash = hash_password(senha)
@@ -47,28 +48,36 @@ def tela_login_cliente():
     elif escolha == "Cadastrar novo usuário":
         novo_usuario = st.text_input("Novo usuário")
         nova_senha = st.text_input("Nova senha", type="password")
+        tipo = st.selectbox("Tipo de usuário", ["cliente", "admin"])
         if st.button("Cadastrar"):
             if novo_usuario and nova_senha:
                 senha_hash = hash_password(nova_senha)
-                novo_dado = pd.DataFrame([[novo_usuario, senha_hash]], columns=["usuario", "senha_hash"])
+                novo_dado = pd.DataFrame([[novo_usuario, senha_hash, tipo]], columns=["usuario", "senha_hash", "tipo"])
                 df_usuarios = pd.concat([df_usuarios, novo_dado], ignore_index=True)
                 df_usuarios.to_csv("usuarios.csv", index=False)
                 st.success("Usuário cadastrado com sucesso!")
             else:
                 st.warning("Preencha todos os campos.")
-df = pd.read_csv("usuarios.csv")
-usuario_atual = st.session_state["usuario_logado"]
-tipo = df.loc[df["usuario"] == usuario_atual, "tipo"].values[0]
 
-if tipo == "admin":
-    painel_administrador()
-elif tipo == "cliente":
-    st.info("Bem-vindo! Você pode gerar seu orçamento abaixo 👷‍♂️📋")
-
-# 🔒 Proteção de acesso
+# 🔒 Verificação de login
 if "usuario_logado" not in st.session_state:
     tela_login_cliente()
     st.stop()
+else:
+    usuario_atual = st.session_state["usuario_logado"]
+    df_usuarios = carregar_usuarios()
+    if usuario_atual in df_usuarios["usuario"].values:
+        tipo = df_usuarios.loc[df_usuarios["usuario"] == usuario_atual, "tipo"].values[0]
+
+        if tipo == "admin":
+            painel_administrador()
+            st.markdown("---")
+            st.markdown("## Área de Orçamento (Admin)")
+        elif tipo == "cliente":
+            st.markdown("## Área de Orçamento (Cliente)")
+    else:
+        st.error("Usuário não encontrado no arquivo.")
+        st.stop()
 
 # 🏗️ Interface do orçamento
 st.title("Orçamento de Projeto - Light Steel Frame 🏗️")
@@ -97,7 +106,6 @@ ferramentas_mes = st.sidebar.number_input("Custo ferramentas/mês (R$)", value=5
 meses = st.sidebar.number_input("Meses de uso", min_value=1, value=3)
 
 lucro_perc = st.sidebar.slider("Percentual de lucro desejado", 0.0, 0.5, 0.25)
-
 # 🧮 Cálculos
 total_mao_obra = (funcionarios * diaria_func + diaria_resp) * dias
 total_alimentacao = (almoco + janta) * dias * (funcionarios + 1)
@@ -116,7 +124,7 @@ subtotal = sum([
 lucro = subtotal * lucro_perc
 valor_final = subtotal + lucro
 
-# 📊 Visão geral
+# 📊 Resumo
 st.header("Resumo do Orçamento")
 st.metric("Subtotal", f"R${subtotal:,.2f}")
 st.metric("Lucro estimado", f"R${lucro:,.2f}")
@@ -132,90 +140,4 @@ st.table({
         "Viagens",
         "Ferramentas"
     ],
-    "Valor (R$)": [
-        f"{total_mao_obra:,.2f}",
-        f"{total_alimentacao:,.2f}",
-        f"{total_hospedagem:,.2f}",
-        f"{total_deslocamento:,.2f}",
-        f"{total_viagens:,.2f}",
-        f"{total_ferramentas:,.2f}"
-    ]
-})
-
-# 📝 Proposta comercial
-st.subheader("Proposta Comercial")
-proposta = f"""
-Cliente: {cliente}
-Área da obra: {area:.0f} m²
-Prazo de execução: {dias} dias
-Equipe: {funcionarios + 1} profissionais (inclui responsável técnico)
-
-Custos estimados:
-- Mão de obra direta: R${total_mao_obra:,.2f}
-- Alimentação: R${total_alimentacao:,.2f}
-- Hospedagem: R${total_hospedagem:,.2f}
-- Deslocamento e viagens: R${total_deslocamento + total_viagens:,.2f}
-- Ferramentas: R${total_ferramentas:,.2f}
-Subtotal: R${subtotal:,.2f}
-Lucro ({lucro_perc * 100:.0f}%): R${lucro:,.2f}
-
-💬 Valor total da proposta: R${valor_final:,.2f}
-
-Condições:
-- Pagamento a combinar.
-- Início previsto conforme disponibilidade do cliente.
-"""
-
-st.text_area("Texto da proposta", proposta, height=300)
-
-# 📤 Exportação da proposta como HTML estilizado
-html_proposta = f"""
-<html>
-<head>
-<style>
-  body {{
-    font-family: Arial, sans-serif;
-    background-color: #f4f7f5;
-    color: #263327;
-    padding: 40px;
-  }}
-  h2 {{ color: #3A724B; }}
-  ul {{ line-height: 1.6; }}
-  .valor {{ font-weight: bold; color: #1f4e79; }}
-</style>
-</head>
-<body>
-  <h2>Proposta Comercial - Steel Facility</h2>
-  <p><strong>Cliente:</strong> {cliente}</p>
-  <p><strong>Área da obra:</strong> {area:.0f} m²</p>
-  <p><strong>Prazo de execução:</strong> {dias} dias</p>
-  <p><strong>Equipe:</strong> {funcionarios + 1} profissionais</p>
-  <h4>Custos Estimados:</h4>
-  <ul>
-    <li>Mão de obra: <span class="valor">R${total_mao_obra:,.2f}</span></li>
-    <li>Alimentação: <span class="valor">R${total_alimentacao:,.2f}</span></li>
-    <li>Hospedagem: <span class="valor">R${total_hospedagem:,.2f}</span></li>
-    <li>Deslocamento + viagens: <span class="valor">R${total_deslocamento + total_viagens:,.2f}</span></li>
-    <li>Ferramentas: <span class="valor">R${total_ferramentas:,.2f}</span></li>
-  </ul>
-
-  <p><strong>Subtotal:</strong> R${subtotal:,.2f}</p>
-  <p><strong>Lucro ({lucro_perc * 100:.0f}%):</strong> R${lucro:,.2f}</p>
-  <p><strong>Valor total da proposta:</strong> <span class="valor">R${valor_final:,.2f}</span></p>
-
-  <h4>Condições:</h4>
-  <p>- Pagamento a combinar.</p>
-  <p>- Início conforme disponibilidade do cliente.</p>
-</body>
-</html>
-"""
-
-# ⬇️ Download do HTML gerado
-html_bytes = html_proposta.encode("utf-8")
-b64 = base64.b64encode(html_bytes).decode("utf-8")
-file_name = f"proposta_{cliente.replace(' ', '_')}.html"
-href = f'<a href="data:text/html;base64,{b64}" download="{file_name}">📥 Baixar proposta em HTML</a>'
-
-st.markdown("---")
-st.markdown("### Exportação da Proposta 📄")
-st.markdown(href, unsafe_allow_html=True)
+    "Valor (R$)":
