@@ -1,4 +1,4 @@
-import pdfkit
+import pdfkit 
 
 def gerar_html(cliente, area, dias, funcionarios, total_mao_obra,
                total_alimentacao, total_hospedagem, total_deslocamento,
