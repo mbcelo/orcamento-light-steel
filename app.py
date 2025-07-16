@@ -1,65 +1,54 @@
+import streamlit as st
+from PIL import Image
 import pandas as pd
 import hashlib
 import os
 
-# Função para criptografar senha
+# 🎨 Aparência geral
+st.set_page_config(page_title="Orçamento Light Steel Frame", layout="wide")
+logo = Image.open("logo.png")
+
+# 🔐 Funções de autenticação
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-# Verifica se arquivo de usuários existe
 def carregar_usuarios():
     if os.path.exists("usuarios.csv"):
         return pd.read_csv("usuarios.csv")
     else:
         return pd.DataFrame(columns=["usuario", "senha_hash"])
 
-# Verifica credenciais
 def autenticar(usuario, senha, df):
     senha_hash = hash_password(senha)
     return not df[(df["usuario"] == usuario) & (df["senha_hash"] == senha_hash)].empty
 
-# Tela de login
-def tela_login():
-    st.sidebar.title("🔐 Login")
-    escolha = st.sidebar.radio("Acesso", ["Entrar", "Cadastrar novo usuário"])
-    df_usuarios = carregar_usuarios()
-
-    if escolha == "Entrar":
-        usuario = st.sidebar.text_input("Usuário")
-        senha = st.sidebar.text_input("Senha", type="password")
-        if st.sidebar.button("Entrar"):
-            if autenticar(usuario, senha, df_usuarios):
-                st.session_state["usuario_logado"] = usuario
-                st.success(f"Bem-vindo, {usuario}!")
-            else:
-                st.error("Usuário ou senha incorretos.")
-    elif escolha == "Cadastrar novo usuário":
-        novo_usuario = st.sidebar.text_input("Novo usuário")
-        nova_senha = st.sidebar.text_input("Nova senha", type="password")
-        if st.sidebar.button("Cadastrar"):
-            if novo_usuario and nova_senha:
-                senha_hash = hash_password(nova_senha)
-                novo_dado = pd.DataFrame([[novo_usuario, senha_hash]], columns=["usuario", "senha_hash"])
-                df_usuarios = pd.concat([df_usuarios, novo_dado], ignore_index=True)
-                df_usuarios.to_csv("usuarios.csv", index=False)
-                st.sidebar.success("Usuário cadastrado com sucesso!")
-            else:
-                st.sidebar.warning("Preencha todos os campos.")
-
-# Verifica login antes de mostrar conteúdo
-if "usuario_logado" not in st.session_state:
-    tela_login()
-    st.stop()
+def tela_login_cliente():
+    col1, col2 = st.columns([1, 3])
+    with col1:
+        st.image(logo, width=180)
+    with col2:
+        st.markdown("## Bem-vindo à Steel Facility")
+        st.markdown("""
+        Preencha seus dados para acessar sua proposta de orçamento personalizada 🏠  
+        Este portal é exclusivo para clientes autorizados.  
+        """)
     
-import streamlit as st
-from PIL import Image
+    df_usuarios = carregar_usuarios()
+    usuario = st.text_input("Usuário")
+    senha = st.text_input("Senha", type="password")
+    if st.button("Entrar"):
+        if autenticar(usuario, senha, df_usuarios):
+            st.session_state["usuario_logado"] = usuario
+            st.success(f"Olá, {usuario}! A proposta está carregando…")
+        else:
+            st.error("Usuário ou senha incorretos. Verifique seus dados ou solicite suporte.")
 
-# 🎨 Configurações visuais
-st.set_page_config(page_title="Orçamento Light Steel Frame", layout="wide")
-logo = Image.open("logo.png")
-st.image(logo, width=250)
+# 🔒 Verificação de login
+if "usuario_logado" not in st.session_state:
+    tela_login_cliente()
+    st.stop()
 
-# 🎯 Título
+# 🎯 Início da interface do app após login
 st.title("Orçamento de Projeto - Light Steel Frame 🏗️")
 
 # 🔷 Informações do projeto
