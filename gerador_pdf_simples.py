@@ -1,5 +1,4 @@
 from xhtml2pdf import pisa
-import streamlit as st
 
 def gerar_pdf(cliente, html_content):
     file_name = f"proposta_{cliente.replace(' ', '_')}.pdf"
