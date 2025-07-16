@@ -2,7 +2,7 @@ from xhtml2pdf import pisa
 import os
 
 def gerar_pdf(cliente, html_content):
-    os.makedirs("propostas", exist_ok=True)  # Garante a existência da pasta
+    os.makedirs("propostas", exist_ok=True)
     file_name = f"proposta_{cliente.replace(' ', '_')}.pdf"
     caminho = os.path.join("propostas", file_name)
 
