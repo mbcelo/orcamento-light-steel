@@ -1,0 +1,6 @@
+[theme]
+primaryColor = "#3A724B"              # Verde escuro elegante (usado para botões e destaques)
+backgroundColor = "#f4f7f5"           # Verde gelo suave (fundo da página)
+secondaryBackgroundColor = "#ffffff" # Branco (caixas e áreas internas)
+textColor = "#263327"                 # Verde quase preto (ideal para leitura)
+font = "sans serif"                   # Estilo limpo e profissional
