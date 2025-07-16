@@ -1,5 +1,5 @@
 import streamlit as st
-from gerar_pdf_proposta import gerar_html, gerar_pdf
+from gerador_pdf_simples import gerar_pdf
 
 st.set_page_config(page_title="🧾 Gerador de Proposta PDF", layout="centered")
 st.title("🧾 Gerador de Proposta PDF - Steel Facility")
