@@ -3,3 +3,4 @@ Pillow
 pandas
 pdfkit
 jinja2
+xhtml2pdf
