@@ -1,5 +1,30 @@
 import streamlit as st
 from gerador_pdf_simples import gerar_pdf
+import streamlit_authenticator as stauth
+import yaml
+from yaml.loader import SafeLoader
+
+with open('config_login.yaml') as file:
+    config = yaml.load(file, Loader=SafeLoader)
+
+authenticator = stauth.Authenticate(
+    config['credentials'],
+    config['cookie']['name'],
+    config['cookie']['key'],
+    config['cookie']['expiry_days'],
+    config['preauthorized']
+)
+
+name, authentication_status, username = authenticator.login("Login", "main")
+
+if authentication_status:
+    st.success(f"Bem-vindo, {name} 👋")
+    # 🎯 Aqui roda seu app normalmente
+    # por exemplo: gerar PDF etc.
+elif authentication_status is False:
+    st.error("Usuário ou senha incorretos")
+elif authentication_status is None:
+    st.warning("Por favor, insira suas credenciais")
 
 st.set_page_config(page_title="🧾 Gerador de Proposta PDF", layout="centered")
 st.title("🧾 Gerador de Proposta PDF - Steel Facility")
