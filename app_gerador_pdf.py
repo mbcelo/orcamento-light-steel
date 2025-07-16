@@ -1,12 +1,30 @@
 import streamlit as st
 from gerador_pdf_simples import gerar_pdf
+import json
+import os
 
-def executar_app():
+def executar_app(usuario_logado):
     st.title("🧾 Gerador de Proposta - Steel Facility")
 
     # Etapa inicial
     if "etapa" not in st.session_state:
         st.session_state.etapa = "cliente"
+
+    # Função auxiliar para salvar cliente por usuário
+    def salvar_cliente(usuario, dados):
+        os.makedirs("clientes", exist_ok=True)
+        caminho = os.path.join("clientes", f"{usuario}_clientes.json")
+
+        try:
+            with open(caminho, "r", encoding="utf-8") as f:
+                clientes_existentes = json.load(f)
+        except:
+            clientes_existentes = []
+
+        clientes_existentes.append(dados)
+
+        with open(caminho, "w", encoding="utf-8") as f:
+            json.dump(clientes_existentes, f, indent=2)
 
     # Etapa 1 - Cadastro do Cliente
     if st.session_state.etapa == "cliente":
@@ -18,12 +36,14 @@ def executar_app():
 
         if st.button("✅ Salvar cliente e avançar"):
             if all([nome, endereco, email, celular]):
-                st.session_state.cliente = {
+                cliente = {
                     "nome": nome,
                     "endereco": endereco,
                     "email": email,
                     "celular": celular
                 }
+                st.session_state.cliente = cliente
+                salvar_cliente(usuario_logado, cliente)
                 st.success("Cliente salvo com sucesso!")
                 st.session_state.etapa = "obra"
             else:
@@ -32,9 +52,9 @@ def executar_app():
     # Etapa 2 - Dados da Obra
     elif st.session_state.etapa == "obra":
         st.subheader("🏗️ Dados da Obra")
-        area = st.number_input("Área (m²)", min_value=0.0)
-        dias = st.number_input("Prazo (dias)", min_value=1)
-        equipe = st.number_input("Nº de funcionários", min_value=1)
+        area = st.number_input("Área da obra (m²)", min_value=0.0)
+        dias = st.number_input("Prazo de execução (dias)", min_value=1)
+        equipe = st.number_input("Quantidade de funcionários", min_value=1)
 
         if st.button("✅ Salvar dados da obra"):
             st.session_state.obra = {
@@ -46,16 +66,16 @@ def executar_app():
 
     # Etapa 3 - Custos
     elif st.session_state.etapa == "custos":
-        st.subheader("💰 Custos da Proposta")
-        mao_obra = st.number_input("Mão de obra", min_value=0.0)
-        alimentacao = st.number_input("Alimentação", min_value=0.0)
-        hospedagem = st.number_input("Hospedagem", min_value=0.0)
-        deslocamento = st.number_input("Deslocamento", min_value=0.0)
-        viagens = st.number_input("Viagens", min_value=0.0)
-        ferramentas = st.number_input("Ferramentas", min_value=0.0)
+        st.subheader("💰 Custos Estimados")
+        mao_obra = st.number_input("Mão de obra (R$)", min_value=0.0)
+        alimentacao = st.number_input("Alimentação (R$)", min_value=0.0)
+        hospedagem = st.number_input("Hospedagem (R$)", min_value=0.0)
+        deslocamento = st.number_input("Deslocamento (R$)", min_value=0.0)
+        viagens = st.number_input("Viagens (R$)", min_value=0.0)
+        ferramentas = st.number_input("Ferramentas (R$)", min_value=0.0)
         lucro_perc = st.slider("Margem de lucro (%)", 0, 100, 20) / 100
 
-        if st.button("✅ Gerar PDF"):
+        if st.button("📤 Gerar Proposta PDF"):
             subtotal = sum([mao_obra, alimentacao, hospedagem, deslocamento, viagens, ferramentas])
             lucro = subtotal * lucro_perc
             total = subtotal + lucro
@@ -83,8 +103,7 @@ def executar_app():
                     <li>Mão de obra: R${mao_obra:.2f}</li>
                     <li>Alimentação: R${alimentacao:.2f}</li>
                     <li>Hospedagem: R${hospedagem:.2f}</li>
-                    <li>Deslocamento: R${deslocamento:.2f}</li>
-                    <li>Viagens: R${viagens:.2f}</li>
+                    <li>Deslocamento + Viagens: R${deslocamento + viagens:.2f}</li>
                     <li>Ferramentas: R${ferramentas:.2f}</li>
                     <li>Subtotal: R${subtotal:.2f}</li>
                     <li>Lucro ({lucro_perc * 100:.0f}%): R${lucro:.2f}</li>
