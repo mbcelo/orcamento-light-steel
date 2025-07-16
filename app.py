@@ -177,6 +177,16 @@ Condições:
 
 st.text_area("Texto da proposta", proposta, height=300)
 
+html_custom = gerar_html_proposta(
+    cliente, area, dias, funcionarios,
+    total_mao_obra, total_alimentacao, total_hospedagem,
+    total_deslocamento, total_viagens, total_ferramentas,
+    subtotal, lucro, valor_final, lucro_perc
+)
+
+st.markdown("### Exportar proposta em visual Canva 📄")
+exportar_proposta_html(cliente, html_custom)
+
 # 📤 Exportar HTML estilizado
 html_proposta = f"""
 <html>
