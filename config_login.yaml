@@ -1,0 +1,19 @@
+credentials:
+  usernames:
+    marcelo:
+      email: marcelo@example.com
+      name: Marcelo Silva
+      password: "pbkdf2:sha256:260000$ZrQX..."  # gerado com o script de senha
+
+cookie:
+  expiry_days: 30
+  key: "autenticacao_usuario"
+  name: "login_app_pdf"
+
+preauthorized:
+  emails:
+    - marcelo@example.com
+
+import streamlit_authenticator as stauth
+hashed = stauth.Hasher(['minha_senha_segura']).generate()
+print(hashed)
