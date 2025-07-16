@@ -5,3 +5,4 @@ pdfkit
 jinja2
 xhtml2pdf
 streamlit-authenticator
+PyYAML
