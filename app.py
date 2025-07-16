@@ -56,6 +56,14 @@ def tela_login_cliente():
                 st.success("Usuário cadastrado com sucesso!")
             else:
                 st.warning("Preencha todos os campos.")
+df = pd.read_csv("usuarios.csv")
+usuario_atual = st.session_state["usuario_logado"]
+tipo = df.loc[df["usuario"] == usuario_atual, "tipo"].values[0]
+
+if tipo == "admin":
+    painel_administrador()
+elif tipo == "cliente":
+    st.info("Bem-vindo! Você pode gerar seu orçamento abaixo 👷‍♂️📋")
 
 # 🔒 Proteção de acesso
 if "usuario_logado" not in st.session_state:
