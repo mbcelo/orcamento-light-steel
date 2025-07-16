@@ -3,7 +3,7 @@ credentials:
     marcelo:
       email: marcelo@example.com
       name: Marcelo
-      password: "INSIRA_SENHA_CRIPTOGRAFADA_AQUI"
+      password: "pbkdf2:sha256:260000$..."  # senha criptografada gerada
 
 cookie:
   expiry_days: 30
