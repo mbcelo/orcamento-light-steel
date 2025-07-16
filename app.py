@@ -140,4 +140,90 @@ st.table({
         "Viagens",
         "Ferramentas"
     ],
-    "Valor (R$)":
+    "Valor (R$)": [
+        f"{total_mao_obra:,.2f}",
+        f"{total_alimentacao:,.2f}",
+        f"{total_hospedagem:,.2f}",
+        f"{total_deslocamento:,.2f}",
+        f"{total_viagens:,.2f}",
+        f"{total_ferramentas:,.2f}"
+    ]
+})
+
+# 📝 Proposta comercial
+st.subheader("Proposta Comercial")
+proposta = f"""
+Cliente: {cliente}
+Área da obra: {area:.0f} m²
+Prazo de execução: {dias} dias
+Equipe: {funcionarios + 1} profissionais (inclui responsável técnico)
+
+Custos estimados:
+- Mão de obra direta: R${total_mao_obra:,.2f}
+- Alimentação: R${total_alimentacao:,.2f}
+- Hospedagem: R${total_hospedagem:,.2f}
+- Deslocamento e viagens: R${total_deslocamento + total_viagens:,.2f}
+- Ferramentas: R${total_ferramentas:,.2f}
+Subtotal: R${subtotal:,.2f}
+Lucro ({lucro_perc * 100:.0f}%): R${lucro:,.2f}
+
+💬 Valor total da proposta: R${valor_final:,.2f}
+
+Condições:
+- Pagamento a combinar.
+- Início previsto conforme disponibilidade do cliente.
+"""
+
+st.text_area("Texto da proposta", proposta, height=300)
+
+# 📤 Exportar HTML estilizado
+html_proposta = f"""
+<html>
+<head>
+<style>
+  body {{
+    font-family: Arial, sans-serif;
+    background-color: #f4f7f5;
+    color: #263327;
+    padding: 40px;
+  }}
+  h2 {{ color: #3A724B; }}
+  ul {{ line-height: 1.6; }}
+  .valor {{ font-weight: bold; color: #1f4e79; }}
+</style>
+</head>
+<body>
+  <h2>Proposta Comercial - Steel Facility</h2>
+  <p><strong>Cliente:</strong> {cliente}</p>
+  <p><strong>Área da obra:</strong> {area:.0f} m²</p>
+  <p><strong>Prazo de execução:</strong> {dias} dias</p>
+  <p><strong>Equipe:</strong> {funcionarios + 1} profissionais</p>
+
+  <h4>Custos Estimados:</h4>
+  <ul>
+    <li>Mão de obra: <span class="valor">R${total_mao_obra:,.2f}</span></li>
+    <li>Alimentação: <span class="valor">R${total_alimentacao:,.2f}</span></li>
+    <li>Hospedagem: <span class="valor">R${total_hospedagem:,.2f}</span></li>
+    <li>Deslocamento + viagens: <span class="valor">R${total_deslocamento + total_viagens:,.2f}</span></li>
+    <li>Ferramentas: <span class="valor">R${total_ferramentas:,.2f}</span></li>
+  </ul>
+
+  <p><strong>Subtotal:</strong> R${subtotal:,.2f}</p>
+  <p><strong>Lucro ({lucro_perc * 100:.0f}%):</strong> R${lucro:,.2f}</p>
+  <p><strong>Valor total da proposta:</strong> <span class="valor">R${valor_final:,.2f}</span></p>
+
+  <h4>Condições:</h4>
+  <p>- Pagamento a combinar.</p>
+  <p>- Início conforme disponibilidade do cliente.</p>
+</body>
+</html>
+"""
+
+html_bytes = html_proposta.encode("utf-8")
+b64 = base64.b64encode(html_bytes).decode("utf-8")
+file_name = f"proposta_{cliente.replace(' ', '_')}.html"
+href = f'<a href="data:text/html;base64,{b64}" download="{file_name}">📥 Baixar proposta em HTML</a>'
+
+st.markdown("---")
+st.markdown("### Exportação da Proposta 📄")
+st.markdown(href, unsafe_allow_html=True)
