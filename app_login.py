@@ -2,8 +2,9 @@ import streamlit as st
 import streamlit_authenticator as stauth
 import yaml
 from yaml.loader import SafeLoader
+import app_gerador_pdf
 
-st.set_page_config(page_title="🔐 Login", layout="centered")
+st.set_page_config(page_title="🔐 Login - Steel Facility", layout="centered")
 
 # Carregar config_login.yaml
 with open('config_login.yaml') as file:
@@ -18,14 +19,11 @@ authenticator = stauth.Authenticate(
     config['preauthorized']
 )
 
-# Interface de login
 name, authentication_status, username = authenticator.login("Login", "main")
 
 if authentication_status:
-    st.success(f"Bem-vindo, {name} 👋")
-
-    # Importa e executa seu app principal
-    import app_gerador_pdf  # se quiser, podemos adaptar para função modular
+    st.success(f"Bem-vindo, {name} 👷‍♂️")
+    app_gerador_pdf.executar_app()
 
 elif authentication_status is False:
     st.error("Usuário ou senha incorretos")
